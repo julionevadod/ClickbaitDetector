@@ -1,0 +1,8 @@
+data
+notebooks
+venv
+requirements_dev.txt
+losses
+log
+.DS_Store
+*.pyc
