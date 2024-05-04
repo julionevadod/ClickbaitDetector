@@ -6,13 +6,18 @@ from clickbait_detector.models.model import ClickBaitDetectorModel
 import torch.multiprocessing as mp
 import json
 import os
-from transformers import AutoModel, AutoTokenizer
+from transformers import AutoTokenizer
 from torch.utils.data import DistributedSampler
 from datetime import datetime
 import logging
 
 logger = logging.getLogger(__name__)
-logging.basicConfig(filename="log/training.log", encoding='utf-8', level=logging.DEBUG)
+logging.basicConfig(
+    filename="log/training.log",
+    encoding='utf-8',
+    level=logging.DEBUG
+)
+
 
 def get_latest_checkpoint(checkpoint_path):
     file_list = os.listdir(checkpoint_path)
@@ -28,7 +33,7 @@ def train(rank, world_size):
         device = "cuda"
     else:
         device = "cpu"
-    
+
     logging.info(f"Device {device} available.")
 
     model = ClickBaitDetectorModel(
@@ -42,15 +47,20 @@ def train(rank, world_size):
         ddp_model = DDP(model.model)
 
     if os.environ["CHECKPOINT_PATH"]:
-        latest_checkpoint = get_latest_checkpoint(os.environ["CHECKPOINT_PATH"])
+        latest_checkpoint = get_latest_checkpoint(
+            os.environ["CHECKPOINT_PATH"]
+        )
         if latest_checkpoint:
-            logging.info(f"Loading {latest_checkpoint} checkpoint.")
+            logging.info(
+                f"Loading {latest_checkpoint} checkpoint."
+            )
             ddp_model.load_state_dict(
                 torch.load(latest_checkpoint)
             )
         else:
-            logging.warning(f"Checkpoint path was specified but no checkpoints were found.")
-
+            logging.warning(
+                "Checkpoint path was specified but no checkpoints were found."
+            )
 
     optimizer = torch.optim.Adam(ddp_model.parameters())
     loss_fn = torch.nn.BCELoss()
@@ -83,13 +93,19 @@ def train(rank, world_size):
 
             inputs.to(f"{device}:{rank}")
 
-            # By default PyTorch accumulates gradients. This accumulation happens when .backwards() is called.
-            # We reset them at the beginning of the batch to avoid their accumulation.
-            # We can set_to_none parameter to True, which is more memory efficient. But it needs to be handled.
+            # By default PyTorch accumulates gradients.
+            #  This accumulation happens when .backwards() is called.
+            #  We reset them at the beginning of the batch
+            #  to avoid their accumulation.
+            #  We can set_to_none parameter to True
+            #  which is more memory efficient.
+            #  but it needs to be handled.
             optimizer.zero_grad()
 
             # Forward pass
-            outputs = torch.nn.functional.softmax(ddp_model(**inputs)["logits"])
+            outputs = torch.nn.functional.softmax(
+                ddp_model(**inputs)["logits"]
+            )
 
             # Compute loss
             loss = loss_fn(outputs, labels)
@@ -101,26 +117,33 @@ def train(rank, world_size):
             optimizer.step()
 
     if rank == 0:
-        if epoch%int(os.environ["CHECKPOINT_INTERVAL"]) == 0:
+        if epoch % int(os.environ["CHECKPOINT_INTERVAL"]) == 0:
             logger.info(f"Saving for epoch {epoch}...")
             timestamp = datetime.now().strftime("%Y%m%d-%H%M%S%f")
+            save_path = (
+                f"{os.environ['CHECKPOINT_PATH']}/"
+                f"checkpoint_{timestamp}_{epoch}"
+            )
             torch.save(
                 ddp_model.state_dict(),
-                f"{os.environ['CHECKPOINT_PATH']}/checkpoint_{timestamp}_{epoch}"
+                save_path
             )
-            logger.info(f"Checkpoint checkpoint_{timestamp}_{epoch} saved!")
+            logger.info(
+                f"Checkpoint checkpoint_{timestamp}_{epoch} saved!"
+            )
+
 
 if __name__ == "__main__":
     with open('config.json') as f:
         config = json.load(f)
-    
+
     os.environ["BATCH_SIZE"] = str(config["batch_size"])
     os.environ["DATA_PATH"] = config["data_path"]
     os.environ["BASE_MODEL_PATH"] = config["base_model_path"]
     os.environ["NUM_EPOCHS"] = str(config["num_epochs"])
     os.environ["CHECKPOINT_PATH"] = config["checkpoint_path"]
     os.environ["CHECKPOINT_INTERVAL"] = str(config["checkpoint_interval"])
-    
+
     os.environ["MASTER_ADDR"] = "localhost"
     os.environ["MASTER_PORT"] = "29500"
 
@@ -131,7 +154,3 @@ if __name__ == "__main__":
         nprocs=world_size,
         join=True
     )
-
-
-
-

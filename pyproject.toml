@@ -10,7 +10,8 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = [
-    "torchinfo"
+    "torchinfo",
+    "flake8"
 ]
 
 [build-system]
