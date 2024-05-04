@@ -1,0 +1,18 @@
+[project]
+name = "clickbait-detector"
+version = "0.1.0"
+description = "Clickbait Detection using a machine learning model"
+dependencies = [
+    "torch==2.3.0",
+    "pandas==2.2.2",
+    "transformers==4.40.1"
+]
+
+[project.optional-dependencies]
+dev = [
+    "torchinfo"
+]
+
+[build-system]
+build-backend = "flit_core.buildapi"
+requires = ["flit_core >=3.2,<4"]

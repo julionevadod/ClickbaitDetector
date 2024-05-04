@@ -1,0 +1,10 @@
+{
+    "batch_size": 4,
+    "data_path": "data/intermediate/webis_train_small.csv",
+    "base_model_path": "data/models/distilbert",
+    "save_path": "data/models/distilbert_trained",
+    "checkpoint_path": "data/models/checkpoints",
+    "checkpoint_interval": 1,
+    "num_epochs": 1,
+    "world_size": 1
+}
