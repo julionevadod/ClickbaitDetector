@@ -1,5 +1,7 @@
-venv
+#venv
 notebooks
 .git
 .gitignore
 README.md
+logs/**
+data
