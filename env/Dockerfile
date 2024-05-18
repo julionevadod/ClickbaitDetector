@@ -5,8 +5,4 @@ COPY . /ClickbaitDetector
 WORKDIR /ClickbaitDetector
 
 RUN pip install --upgrade pip
-RUN pip install --no-cache-dir -e .
-
-ENTRYPOINT ["python"]
-
-CMD ["-m", "train"]
+RUN pip install -e .

@@ -1,0 +1,30 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  namespace: training
+  name: training-job
+spec:
+  completions: 3
+  parallelism: 3
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: clickbait-distilbert
+        image: clickbait-detector:arm
+        imagePullPolicy: Never
+        env:
+          - name: MASTER_ADDR
+            value: localhost
+          - name: MASTER_PORT
+            value: "12355"
+        volumeMounts:
+        - name: training-volume
+          mountPath: /checkpoints
+        command:
+          
+      volumes:
+      - name: training-volume
+        hostPath:
+          path: data/checkpoints
+  backoffLimit: 1

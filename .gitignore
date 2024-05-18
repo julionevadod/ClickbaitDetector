@@ -3,6 +3,8 @@ notebooks
 venv
 requirements_dev.txt
 losses
-log
+logs
 .DS_Store
 *.pyc
+.devcontainer
+.github
