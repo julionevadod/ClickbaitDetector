@@ -1,7 +1,8 @@
-#venv
-notebooks
 .git
 .gitignore
-README.md
-logs/**
+config.json
 data
+logs/**
+notebooks
+venv
+README.md
