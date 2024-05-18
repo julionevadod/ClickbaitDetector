@@ -1,5 +1,6 @@
 {
-    "batch_size": 16,
+    "batch_size": 8,
+    "world_size": 6,
     "data_path": "data/intermediate/webis_train_small.csv",
     "base_model_path": "data/models/distilbert",
     "save_path": "data/models/distilbert_trained",

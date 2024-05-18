@@ -172,9 +172,9 @@ if __name__ == "__main__":
     os.environ["CHECKPOINT_PATH"] = config["checkpoint_path"]
     os.environ["CHECKPOINT_INTERVAL"] = str(config["checkpoint_interval"])
 
-    world_size = torch.cuda.device_count() or os.cpu_count()//4
+    world_size = config["world_Size"]
 
-    print("World size: ",str(world_size))
+    logger.info("World size: ",str(world_size))
 
     mp.spawn(
         train,
