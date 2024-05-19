@@ -174,7 +174,7 @@ if __name__ == "__main__":
 
     world_size = config["world_size"]
 
-    logger.info("World size: ",str(world_size))
+    logger.info(f"World size: {str(world_size)}")
 
     mp.spawn(
         train,
