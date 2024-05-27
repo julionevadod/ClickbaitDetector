@@ -4,27 +4,40 @@ metadata:
   namespace: training
   name: training-job
 spec:
-  completions: 3
-  parallelism: 3
+  completions: 1
+  parallelism: 1
   template:
     spec:
       restartPolicy: Never
+      hostNetwork: true
       containers:
       - name: clickbait-distilbert
-        image: clickbait-detector:arm
-        imagePullPolicy: Never
+        image: cfb8c1b4e21c:443/clickbait-detector:amd
+        imagePullPolicy: Always
         env:
           - name: MASTER_ADDR
-            value: localhost
+            value: 172.31.109.192
           - name: MASTER_PORT
-            value: "12355"
+            value: "12356"
         volumeMounts:
-        - name: training-volume
-          mountPath: /checkpoints
-        command:
-          
+        - name: data-volume
+          mountPath: /ClickbaitDetector/data
+        - name: logs-volume
+          mountPath: /ClickbaitDetector/logs
+        - name: config
+          mountPath: /ClickbaitDetector/config.json
+        command: ["python"]
+        args: ["-m","train"]
       volumes:
-      - name: training-volume
+      - name: data-volume
         hostPath:
-          path: data/checkpoints
+          path: /home/cloud_user/clickbait/ClickbaitDetector/data
+      - name: logs-volume
+        hostPath:
+          path: /home/cloud_user/clickbait/ClickbaitDetector/logs
+      - name: config
+        hostPath:
+          path: /home/cloud_user/clickbait/ClickbaitDetector/config.json
+      imagePullSecrets:
+          - name: private-registry-secret  
   backoffLimit: 1
