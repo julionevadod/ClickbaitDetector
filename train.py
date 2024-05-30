@@ -18,18 +18,23 @@ logging.basicConfig(
     level=logging.DEBUG
 )
 
+def setup():
+    dist.init_process_group(backend="gloo")
+
 def cleanup():
     dist.destroy_process_group()
 
 def get_latest_checkpoint(checkpoint_path):
-    file_list = os.listdir(checkpoint_path)
+    file_list = list(filter(lambda x: x != ".gitkeep",os.listdir(checkpoint_path)))
     if not file_list:
         return None
     return f"{checkpoint_path}/{max(file_list)}"
 
 
-def train(rank, world_size):
-    dist.init_process_group("gloo", rank=rank, world_size=world_size)
+def train():
+
+    local_rank = int(os.environ["LOCAL_RANK"])
+    global_rank = int(os.environ["RANK"])
 
     if torch.cuda.is_available():
         device = "cuda"
@@ -40,11 +45,11 @@ def train(rank, world_size):
 
     model = ClickBaitDetectorModel(
         os.environ["BASE_MODEL_PATH"],
-        f"{device}:{rank}"
+        f"{device}:{local_rank}"
     )
 
     if device == "cuda":
-        ddp_model = DDP(model.model, device_ids=[rank])
+        ddp_model = DDP(model.model, device_ids=[local_rank])
     else:
         ddp_model = DDP(model.model)
 
@@ -77,7 +82,7 @@ def train(rank, world_size):
 
     sampler = DistributedSampler(
         training_data,
-        rank=rank,
+        rank=global_rank,
         shuffle=True
     )
 
@@ -88,7 +93,7 @@ def train(rank, world_size):
     )
 
     for epoch in range(int(os.environ["NUM_EPOCHS"])):
-        logger.info(f"Starting epoch {epoch} in device {rank}")
+        logger.info(f"Starting epoch {epoch} in device {global_rank}")
         running_loss = 0.0
         logger.info(len(train_dataloader))
         for i_batch, data in enumerate(train_dataloader):
@@ -96,7 +101,7 @@ def train(rank, world_size):
             inputs = data["text"]
             labels = data["label"]
 
-            inputs.to(f"{device}:{rank}")
+            inputs.to(f"{device}:{local_rank}")
 
             # By default PyTorch accumulates gradients.
             #  This accumulation happens when .backwards() is called.
@@ -127,7 +132,7 @@ def train(rank, world_size):
             optimizer.step()
             logger.info("\t Gradients updated...")
 
-        if rank == 0:
+        if global_rank == 0:
             logger.info(f"Epoch loss: {str(running_loss/i_batch)}")
             if epoch % int(os.environ["CHECKPOINT_INTERVAL"]) == 0:
                 logger.info(f"Saving for epoch {epoch}...")
@@ -144,7 +149,7 @@ def train(rank, world_size):
                     f"Checkpoint checkpoint_{timestamp}_{epoch} saved!"
                 )
         dist.barrier()
-    if rank == 0:
+    if global_rank == 0:
         logger.info(f"Saving for epoch {epoch}...")
         timestamp = datetime.now().strftime("%Y%m%d-%H%M%S%f")
         save_path = (
@@ -158,8 +163,6 @@ def train(rank, world_size):
         logger.info(
             f"Checkpoint checkpoint_{timestamp}_final saved!"
     )
-    cleanup()
-
 
 if __name__ == "__main__":
     with open('config.json') as f:
@@ -172,13 +175,10 @@ if __name__ == "__main__":
     os.environ["CHECKPOINT_PATH"] = config["checkpoint_path"]
     os.environ["CHECKPOINT_INTERVAL"] = str(config["checkpoint_interval"])
 
-    world_size = config["world_size"]
+    world_size = os.environ["WORLD_SIZE"]
 
     logger.info(f"World size: {str(world_size)}")
 
-    mp.spawn(
-        train,
-        args=(world_size,),
-        nprocs=world_size,
-        join=True
-    )
+    setup()
+    train()
+    cleanup()

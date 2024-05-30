@@ -4,21 +4,26 @@ metadata:
   namespace: training
   name: training-job
 spec:
-  completions: 1
-  parallelism: 1
+  completions: 2
+  parallelism: 2
   template:
     spec:
       restartPolicy: Never
       hostNetwork: true
       containers:
       - name: clickbait-distilbert
-        image: cfb8c1b4e21c:443/clickbait-detector:amd
-        imagePullPolicy: Always
+        image: master:443/clickbait-detector:amd
+        imagePullPolicy: IfNotPresent
+        resources:
+          requests:
+            memory: "3.5G"
         env:
           - name: MASTER_ADDR
-            value: 172.31.109.192
+            value: 172.31.97.187
           - name: MASTER_PORT
             value: "12356"
+          - name: GLOO_SOCKET_IFNAME
+            value: tunl0
         volumeMounts:
         - name: data-volume
           mountPath: /ClickbaitDetector/data
@@ -26,8 +31,10 @@ spec:
           mountPath: /ClickbaitDetector/logs
         - name: config
           mountPath: /ClickbaitDetector/config.json
-        command: ["python"]
-        args: ["-m","train"]
+        - name: certs
+          mountPath: /etc/docker/certs.d
+        command: ["torchrun"]
+        args: ["--nproc_per_node=2","--nnodes=1","--node_rank=0","--rdzv_id=456","--rdzv_backend=c10d","--rdzv_endpoint=localhost:12350","--master_addr=localhost","train.py"]
       volumes:
       - name: data-volume
         hostPath:
@@ -38,6 +45,9 @@ spec:
       - name: config
         hostPath:
           path: /home/cloud_user/clickbait/ClickbaitDetector/config.json
+      - name: certs
+        hostPath:
+          path: /etc/docker/certs.d
       imagePullSecrets:
-          - name: private-registry-secret  
+      - name: private-registry-secret
   backoffLimit: 1
