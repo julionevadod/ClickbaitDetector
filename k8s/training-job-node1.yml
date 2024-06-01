@@ -1,29 +1,29 @@
-apiVersion: batch/v1
-kind: Job
+apiVersion: apps/v1
+kind: DaemonSet
 metadata:
   namespace: training
-  name: training-job
+  name: training-job1
+  labels:
+    k8s-app: fluentd-logging
 spec:
-  completions: 2
-  parallelism: 2
+  selector:
+    matchLabels:
+      name: fluentd-elasticsearch
   template:
+    metadata:
+      labels:
+        name: fluentd-elasticsearch
     spec:
-      restartPolicy: Never
+      nodeSelector:
+        NODE_RANK: "0"
       hostNetwork: true
       containers:
       - name: clickbait-distilbert
         image: master:443/clickbait-detector:amd
-        imagePullPolicy: IfNotPresent
-        resources:
-          requests:
-            memory: "3.5G"
+        imagePullPolicy: Always
         env:
-          - name: MASTER_ADDR
-            value: 172.31.97.187
-          - name: MASTER_PORT
-            value: "12356"
           - name: GLOO_SOCKET_IFNAME
-            value: tunl0
+            value: ens5
         volumeMounts:
         - name: data-volume
           mountPath: /ClickbaitDetector/data
@@ -34,7 +34,7 @@ spec:
         - name: certs
           mountPath: /etc/docker/certs.d
         command: ["torchrun"]
-        args: ["--nproc_per_node=2","--nnodes=1","--node_rank=0","--rdzv_id=456","--rdzv_backend=c10d","--rdzv_endpoint=localhost:12350","--master_addr=localhost","train.py"]
+        args: ["--nproc_per_node=2","--nnodes=2","--node_rank=0","--rdzv_id=456","--rdzv_backend=c10d","--rdzv_endpoint=172.31.97.187:12357","--master_addr=172.31.97.187","--master_port=12356","train.py"]
       volumes:
       - name: data-volume
         hostPath:
@@ -50,4 +50,3 @@ spec:
           path: /etc/docker/certs.d
       imagePullSecrets:
       - name: private-registry-secret
-  backoffLimit: 1

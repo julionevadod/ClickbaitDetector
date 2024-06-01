@@ -175,10 +175,6 @@ if __name__ == "__main__":
     os.environ["CHECKPOINT_PATH"] = config["checkpoint_path"]
     os.environ["CHECKPOINT_INTERVAL"] = str(config["checkpoint_interval"])
 
-    world_size = os.environ["WORLD_SIZE"]
-
-    logger.info(f"World size: {str(world_size)}")
-
     setup()
     train()
     cleanup()
