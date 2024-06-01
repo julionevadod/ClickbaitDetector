@@ -1,5 +1,8 @@
-venv
-notebooks
 .git
 .gitignore
+config.json
+data
+logs/**
+notebooks
+venv
 README.md

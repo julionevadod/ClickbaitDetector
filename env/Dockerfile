@@ -1,12 +1,9 @@
-FROM python:3.9-slim
+FROM python:3.9-bullseye
 
 COPY . /ClickbaitDetector
 
 WORKDIR /ClickbaitDetector
 
 RUN pip install --upgrade pip
-RUN pip install --no-cache-dir -e .
-
-ENTRYPOINT ["python"]
-
-CMD ["-m", "train"]
+RUN pip install -e .
+RUN pip install -r requirements.txt
