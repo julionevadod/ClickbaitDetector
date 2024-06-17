@@ -8,3 +8,4 @@ logs/*
 *.pyc
 .github
 devcontainer.json
+mlruns/*
