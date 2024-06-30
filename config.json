@@ -1,9 +1,13 @@
 {
     "batch_size": 8,
-    "data_path": "data/intermediate/webis_train_small.csv",
+    "val_batch_size": 32,
+    "data_path": "data/intermediate/webis_train_clean_small.csv",
     "base_model_path": "data/models/distilbert",
     "save_path": "data/models/distilbert_trained",
     "checkpoint_path": "data/checkpoints",
+    "optimizer_path": "data/optimizers",
+    "learning_rate": 1e-3,
     "checkpoint_interval": 5,
-    "num_epochs": 1
+    "logging_interval": 20,
+    "num_epochs": 10
 }
