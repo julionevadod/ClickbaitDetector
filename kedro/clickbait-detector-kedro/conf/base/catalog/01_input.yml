@@ -1,0 +1,3 @@
+input_data:
+  type: pandas.CSVDataset
+  filepath: "${runtime_params: input_data_location, 'data/01_raw/webis_train.csv'}"

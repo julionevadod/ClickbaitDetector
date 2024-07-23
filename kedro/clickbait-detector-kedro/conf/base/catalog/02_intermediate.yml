@@ -1,0 +1,11 @@
+ingested_data:
+  type: pandas.ParquetDataset
+  filepath: "${runtime_params: intermediate_path, 'data/02_intermediate'}/ingested_data"
+
+deduplicated_data:
+  type: pandas.ParquetDataset
+  filepath: "${runtime_params: intermediate_path, 'data/02_intermediate'}/ingested_data"
+
+cleansed_data:
+  type: pandas.ParquetDataset
+  filepath: "${runtime_params: intermediate_path, 'data/02_intermediate'}/cleansed_data"
