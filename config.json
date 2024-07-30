@@ -3,7 +3,7 @@
     "val_batch_size": 32,
     "data_path": "/mnt/data/cleansed_data",
     "base_model_path": "m-newhauser/distilbert-political-tweets",
-    "save_path": "/Workspace/repos/ClickbaitDetector/models/distilbert_trained",
+    "save_path": "/Workspace/repos/ClickbaitDetector/data/models/distilbert_trained",
     "checkpoint_path": "/Workspace/repos/ClickbaitDetector/data/checkpoints",
     "optimizer_path": "/Workspace/repos/ClickbaitDetector/data/optimizers",
     "learning_rate": 1e-3,
