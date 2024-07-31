@@ -5,7 +5,7 @@ import pandas as pd
 
 class ClickbaitDataset(Dataset):
     def __init__(self, csv_file, tokenizer):
-        self.clickbait_dataframe = pd.read_csv(csv_file)
+        self.clickbait_dataframe = pd.read_parquet(csv_file)
         self.tokenizer = tokenizer
 
     def __len__(self):
