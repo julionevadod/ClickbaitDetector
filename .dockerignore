@@ -1,6 +1,5 @@
 .git
 .gitignore
-config.json
 data
 logs/**
 notebooks
