@@ -4,8 +4,13 @@ import pandas as pd
 
 
 class ClickbaitDataset(Dataset):
-    def __init__(self, csv_file, tokenizer):
-        self.clickbait_dataframe = pd.read_parquet(csv_file)
+    def __init__(self, filepath, tokenizer, limit=None):
+        clickbait_dataframe = pd.read_parquet(filepath)
+        if limit > 0:
+            clickbait_dataframe = clickbait_dataframe.sample(
+                n=limit
+            ).reset_index(drop=True).copy()
+        self.clickbait_dataframe = clickbait_dataframe
         self.tokenizer = tokenizer
 
     def __len__(self):
